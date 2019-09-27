@@ -5,6 +5,7 @@ from flask import Flask, Response, request, jsonify
 import redis
 import face_recognition
 import numpy as np
+
 import video_processing
 
 app = Flask(__name__)

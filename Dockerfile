@@ -1,4 +1,4 @@
-# This is a Dockerfile you can modify to deploy your own app based on face_recognition
+# This is a sample Dockerfile you can modify to deploy your own app based on face_recognition
 
 FROM python:3.6-slim-stretch
 
@@ -24,22 +24,14 @@ RUN apt-get install -y --fix-missing \
     python3-numpy \
     software-properties-common \
     zip \
-    redis-server
     && apt-get clean && rm -rf /tmp/* /var/tmp/*
 
-RUN redis-server
+RUN cd ~ && \
+    mkdir -p dlib && \
+    git clone -b 'v19.9' --single-branch https://github.com/davisking/dlib.git dlib/ && \
+    cd  dlib/ && \
+    python3 setup.py install --yes USE_AVX_INSTRUCTIONS
 
-RUN git clone -b 'v19.16' --single-branch https://github.com/davisking/dlib.git
-RUN mkdir -p /dlib/build
-
-RUN cmake -H/dlib -B/dlib/build -DDLIB_USE_CUDA=1 -DUSE_AVX_INSTRUCTIONS=1
-RUN cmake --build /dlib/build
-
-RUN cd /dlib; python3 /dlib/setup.py install
-
-# Install the face recognition package
-
-RUN pip3 install face_recognition
 
 # The rest of this file just runs an example script.
 
@@ -51,7 +43,8 @@ RUN pip3 install face_recognition
 
 COPY . /root/face_recognition
 RUN cd /root/face_recognition && \
-    pip3 install -r requirements.txt
+    pip3 install -r requirements.txt && \
+    python3 setup.py install
 
-CMD cd /root/face_recognition/face_recognition_service && \
-    python3 face_recognition_app.py
+CMD cd /root/face_recognition/examples && \
+    python3 recognize_faces_in_pictures.py
