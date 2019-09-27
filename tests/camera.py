@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import video_processing
+import video_camera
 from flask import Flask, Response, request, jsonify
 import redis
 import face_recognition
 import numpy as np
+import video_processing
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -93,23 +94,29 @@ def search_practice():
     matches = face_recognition.compare_faces([np.frombuffer(x) for x in faces], face_encodings[0])
     return jsonify({'code': 0, 'names': [str(name, 'utf-8') for name, match in zip(names, matches) if match]})
 
-
-# 视频人脸搜索页
+# 视频人脸搜索
 @app.route('/search_video', methods=['GET'])
-def search_videoHtml():
+def index1():
     return '''
     <!doctype html>
     <title>视频人脸搜索</title>
-    <h1>视频人脸搜索</h1>
+    <a href="search_video/file">文件读取</a><br>
+    <a href="search_video/camera">摄像头读取</a>
+    '''
+
+@app.route('/search_video/file', methods=['GET'])
+def search_videoHtml1():
+    return '''
+    <!doctype html>
+    <title>文件读取</title>
+    <h1>输入文件</h1>
     <form method="POST" enctype="multipart/form-data">
       <input type="file" name="file">
       <input type="submit" value="提交">
     </form>
     '''
-
-
-# 视频人脸搜索
-@app.route('/search_video', methods=['POST'])
+# 视频人脸搜索-文件
+@app.route('/search_video/file', methods=['POST'])
 def search_video():
     if 'file' not in request.files:
         return jsonify({'code': 500, 'msg': '没有文件'})
@@ -122,8 +129,31 @@ def search_video():
     names = r.keys()
     faces = r.mget(names)
     # 组成矩阵，计算相似度（欧式距离）
-    video_processing.video_face_recognition(path,names, faces)
-    return jsonify({'code': 0})
+    name = video_processing.video_face_recognition(path,names, faces)
+    return jsonify({'code': 0,'name': name})
+
+@app.route('/search_video/camera', methods=['GET'])
+def search_videoHtml2():
+    return '''
+    <!doctype html>
+    <title>摄像头读取</title>
+    <h1>视频</h1>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="submit" value="打开摄像头">
+    </form>
+    '''
+# 视频人脸搜索-摄像头
+@app.route('/search_video/camera', methods=['POST'])
+def search_video_camera():
+
+    # 连数据库
+    r = redis.Redis(connection_pool=pool)
+    # 取出所有的人名和它对应的特征向量
+    names = r.keys()
+    faces = r.mget(names)
+    # 组成矩阵，计算相似度（欧式距离）
+    video_camera.video_camera(names, faces)
+#    return jsonify({'code': 0})
 
 
 

@@ -1,4 +1,4 @@
-# This is a sample Dockerfile you can modify to deploy your own app based on face_recognition
+# This is a Dockerfile you can modify to deploy your own app based on face_recognition
 
 FROM python:3.6-slim-stretch
 
@@ -26,25 +26,31 @@ RUN apt-get install -y --fix-missing \
     zip \
     && apt-get clean && rm -rf /tmp/* /var/tmp/*
 
-RUN cd ~ && \
-    mkdir -p dlib && \
-    git clone -b 'v19.9' --single-branch https://github.com/davisking/dlib.git dlib/ && \
-    cd  dlib/ && \
-    python3 setup.py install --yes USE_AVX_INSTRUCTIONS
+RUN git clone -b 'v19.16' --single-branch https://github.com/davisking/dlib.git
+RUN mkdir -p /dlib/build
 
+RUN cmake -H/dlib -B/dlib/build -DDLIB_USE_CUDA=1 -DUSE_AVX_INSTRUCTIONS=1
+RUN cmake --build /dlib/build
+
+RUN cd /dlib; python3 /dlib/setup.py install
+
+# Install the face recognition package
+
+RUN pip install face_recognition
 
 # The rest of this file just runs an example script.
 
 # If you wanted to use this Dockerfile to run your own app instead, maybe you would do this:
 # COPY . /root/your_app_or_whatever
 # RUN cd /root/your_app_or_whatever && \
-#     pip3 install -r requirements.txt
+#     pip install -r requirements.txt
 # RUN whatever_command_you_run_to_start_your_app
 
-COPY . /root/face_recognition
-RUN cd /root/face_recognition && \
-    pip3 install -r requirements.txt && \
-    python3 setup.py install
+COPY . /root/face_recognition_service
+RUN ls /root/face_recognition_service
 
-CMD cd /root/face_recognition/examples && \
-    python3 recognize_faces_in_pictures.py
+WORKDIR /root/face_recognition_service/face_recognition_service
+
+RUN pip install -r requirements.txt
+
+CMD ["python", "face_recogintion_app.py"]

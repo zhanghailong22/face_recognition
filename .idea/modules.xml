@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/face_recognition_service.iml" filepath="$PROJECT_DIR$/.idea/face_recognition_service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/osdt-mep-app.iml" filepath="$PROJECT_DIR$/.idea/osdt-mep-app.iml" />
     </modules>
   </component>
 </project>

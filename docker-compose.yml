@@ -1,16 +1,15 @@
-version: '2.3'
-
-services:
-  face_recognition:
-    image: face_recognition
-    container_name: face_recognition
-    working_dir: /face_recognition/examples
-    build:
-      context: .
-      #Uncomment this line to run the example on the GPU (requires Nvidia-Docker)
-      # dockerfile: Dockerfile.gpu 
-    command: python3 -u find_faces_in_picture_cnn.py
-    volumes:
-      - ./:/face_recognition
-    #Uncomment this line to run the example on the GPU (requires Nvidia-Docker)
-    # runtime: nvidia
+version: '3'   # compose-file的语法版本
+services:    # 定义服务
+  web:      # 指定服务1 web
+    build: .    # 使用当前目录下的Dockerfile构建镜像
+    ports:    # 指定端口映射
+      - "9999:9999"
+    container_name: face_recognition  # 容器名称 container_name+services_name 会作为镜像名称
+  redis:
+    image: "redis:alpine"
+    volumes:   # 指定数据卷
+      - redis-data:/data
+    container_name: redis
+volumes:
+    redis-data:
+      driver: local
